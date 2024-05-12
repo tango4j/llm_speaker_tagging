@@ -10,6 +10,7 @@ from beam_search_utils import (
     run_mp_beam_search_decoding,
     convert_nemo_json_to_seglst,
 )
+from hydra.core.config_store import ConfigStore
 
 __INFO_TAG__ = "[INFO]"
 
@@ -30,9 +31,11 @@ class RealigningLanguageModelParameters:
     beam_width: int = 16
     out_dir: Optional[str] = None
 
+cs = ConfigStore.instance()
+cs.store(name="config", node=RealigningLanguageModelParameters)
 
-@hydra.main(config_name="RealigningLanguageModelParameters", schema=RealigningLanguageModelParameters)
-def main(cfg):
+@hydra.main(config_name="config", version_base="1.1")
+def main(cfg: RealigningLanguageModelParameters) -> None:
     trans_info_dict = load_input_jsons(input_error_src_list_path=cfg.input_error_src_list_path, peak_prob=float(cfg.peak_prob))
     reference_info_dict  = load_reference_jsons(reference_seglst_list_path=cfg.groundtruth_ref_list_path)
     source_info_dict = load_reference_jsons(reference_seglst_list_path=cfg.input_error_src_list_path)

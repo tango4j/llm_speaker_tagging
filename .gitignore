@@ -152,6 +152,13 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+# GenSEC HF
+SLT-Task2-Post-ASR-Speaker-Tagging/
+arpa_model/
+err_dev.ref.list
+err_dev.src.list
+outputs/
+
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
