@@ -1,0 +1,5 @@
+kenlm
+arpa
+pydiardecode @ git+https://github.com/tango4j/pydiardecode@main
+numpy
+hydra-core
