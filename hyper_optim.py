@@ -66,13 +66,13 @@ def evaluate(cfg, temp_out_dir, workspace_dir, asrdiar_file_name, source_info_di
 
 
 def optuna_suggest_params(cfg, trial):
-    cfg.alpha = trial.suggest_float("alpha", 0.01, 1.0)
-    cfg.beta = trial.suggest_float("beta", 0.01, 0.99)
-    cfg.beam_width = trial.suggest_int("beam_width", 4, 32)
+    cfg.alpha = trial.suggest_float("alpha", 0.01, 5.0)
+    cfg.beta = trial.suggest_float("beta", 0.001, 2.0)
+    cfg.beam_width = trial.suggest_int("beam_width", 4, 64)
     cfg.word_window = trial.suggest_int("word_window", 16, 64)
     cfg.use_ngram = True
-    cfg.parallel_chunk_word_len = trial.suggest_int("parallel_chunk_word_len", 100, 250)
-    cfg.peak_prob = trial.suggest_float("peak_prob", 0.95, 0.95)
+    cfg.parallel_chunk_word_len = trial.suggest_int("parallel_chunk_word_len", 50, 300)
+    cfg.peak_prob = trial.suggest_float("peak_prob", 0.9, 1.0)
     return cfg
 
 def beamsearch_objective(
