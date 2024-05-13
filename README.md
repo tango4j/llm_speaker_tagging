@@ -71,7 +71,6 @@ Note that the word `well` `i`, `discussed` and `sounds` are tagged with wrong sp
 [
  {"session_id":"session_abc123ab", "start_time":0.0, "end_time":0.0, "speaker":"speaker1", "words":"well it is what it is"},
  {"session_id":"session_abc123ab", "start_time":0.0, "end_time":0.0, "speaker":"speaker2", "words":"yeah so be it"},
- ...
  {"session_id":"session_xyz456cd", "start_time":0.0, "end_time":0.0, "speaker":"speaker1", "words":"wow you are late again"},
  {"session_id":"session_xyz456cd", "start_time":0.0, "end_time":0.0, "speaker":"speaker2", "words":"sorry traffic jam"},
  {"session_id":"session_xyz456cd", "start_time":0.0, "end_time":0.0, "speaker":"speaker3", "words":"hey how was last night"}
@@ -211,11 +210,13 @@ Launch the baseline script `run_speaker_tagging_beam_search.sh`
 BASEPATH=${PWD}
 DIAR_LM_PATH=$BASEPATH/arpa_model/4gram_small.arpa
 ASRDIAR_FILE_NAME=err_dev
+OPTUNA_STUDY_NAME=speaker_beam_search_${ASRDIAR_FILE_NAME}
 WORKSPACE=$BASEPATH/SLT-Task2-Post-ASR-Speaker-Tagging
 INPUT_ERROR_SRC_LIST_PATH=$BASEPATH/$ASRDIAR_FILE_NAME.src.list
 GROUNDTRUTH_REF_LIST_PATH=$BASEPATH/$ASRDIAR_FILE_NAME.ref.list
-DIAR_OUT_DOWNLOAD=$WORKSPACE/short2_all_seglst_infer
+DIAR_OUT_DOWNLOAD=$WORKSPACE/$ASRDIAR_FILE_NAME
 mkdir -p $DIAR_OUT_DOWNLOAD
+
 
 ### SLT 2024 Speaker Tagging Setting v1.0.2
 ALPHA=0.4
@@ -233,8 +234,8 @@ echo "UNIQ MEMO:" $UNIQ_MEMO
 TRIAL=telephonic
 BATCH_SIZE=11
 
-
 python $BASEPATH/speaker_tagging_beamsearch.py \
+    hyper_params_optim=false \
     port=[5501,5502,5511,5512,5521,5522,5531,5532] \
     arpa_language_model=$DIAR_LM_PATH \
     batch_size=$BATCH_SIZE \
@@ -247,7 +248,6 @@ python $BASEPATH/speaker_tagging_beamsearch.py \
     beam_width=$BEAM_WIDTH \
     word_window=$WORD_WINDOW \
     peak_prob=$PEAK_PROB \
-    out_dir=$DIAR_OUT_DOWNLOAD 
 ```
 
 ### Evaluate 
