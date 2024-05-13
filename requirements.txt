@@ -6,4 +6,5 @@ meeteval
 tqdm
 requests
 simplejson
+optuna
 pydiardecode @ git+https://github.com/tango4j/pydiardecode@main

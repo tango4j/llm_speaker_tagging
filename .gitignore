@@ -157,7 +157,9 @@ SLT-Task2-Post-ASR-Speaker-Tagging/
 arpa_model/
 err_dev.ref.list
 err_dev.src.list
+err_dev*
 outputs/
+temp_out_dir/
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can

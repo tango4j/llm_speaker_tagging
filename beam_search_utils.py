@@ -8,7 +8,7 @@ import json
 import concurrent.futures
 import kenlm
 
-__INFO_TAG__ = "[INFO]"
+__INFO_TAG__ = "[BeamSearchUtil INFO]"
 
 class SpeakerTaggingBeamSearchDecoder:
     def __init__(self, loaded_kenlm_model: kenlm, cfg: dict):
@@ -127,11 +127,10 @@ class SpeakerTaggingBeamSearchDecoder:
                 div_trans_info_dict[seq_id]['words'] = w_seq
         return div_trans_info_dict
 
-
 def run_mp_beam_search_decoding(
     speaker_beam_search_decoder, 
     loaded_kenlm_model, 
-    trans_info_dict, 
+    div_trans_info_dict, 
     org_trans_info_dict, 
     div_mp, 
     win_len, 
@@ -147,7 +146,7 @@ def run_mp_beam_search_decoding(
     else:
         num_workers = len(port)
     
-    uniq_id_list = sorted(list(trans_info_dict.keys() ))
+    uniq_id_list = sorted(list(div_trans_info_dict.keys() ))
     tp = concurrent.futures.ProcessPoolExecutor(max_workers=num_workers)
     futures = []
 
@@ -159,7 +158,7 @@ def run_mp_beam_search_decoding(
         else:
             port_num = None
         count += 1
-        uniq_trans_info_dict = {uniq_id: trans_info_dict[uniq_id]}
+        uniq_trans_info_dict = {uniq_id: div_trans_info_dict[uniq_id]}
         futures.append(tp.submit(speaker_beam_search_decoder.beam_search_diarization, uniq_trans_info_dict, port_num=port_num))
 
     pbar = tqdm(total=len(uniq_id_list), desc="Running beam search decoding", unit="files")
@@ -321,5 +320,5 @@ def write_seglst_jsons(
 
     print(f"{__INFO_TAG__} Writing {diar_out_path}/{session_id}.seglst.json")
     total_output_filename = total_output_filename.replace("src", ext_str).replace("ref", ext_str)
-    with open(f'{diar_out_path}/../{total_output_filename}.seglst.json', 'w') as file:
+    with open(f'{diar_out_path}/{total_output_filename}.seglst.json', 'w') as file:
         json.dump(total_infer_list, file, indent=4)  # indent=4 for pretty printing

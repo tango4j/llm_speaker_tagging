@@ -2,11 +2,13 @@
 
 SLT 2024 Challenge: Post-ASR-Speaker-Tagging Baseline
 
+
+
 # Project Name
 
 SLT 2024 Challenge GenSEC Track 2: Post-ASR-Speaker-Tagging Baseline 
 
-## Features
+## Featuresimag
 
 - Data download and cleaning
 - n-gram + beam search decoder based baselinee system 
@@ -20,6 +22,19 @@ Run the following commands at the main level of this repository.
 ```
 conda create --name llmspk python=3.10
 ```
+
+## Baseline System: Contextudal Beam Search Decoding
+
+![BSD Equation](images/bsd_equation.png)
+
+
+![Overall Dataflow](images/overall_dataflow.png)
+
+![Two Realms](images/two_realms.png)
+
+![Word Level Speaker Probability](images/word_level_spk_prob.png)
+
+
 ### Install requirements
 
 You need to install the following packages 
@@ -59,8 +74,8 @@ git clone https://huggingface.co/datasets/GenSEC-LLM/SLT-Task2-Post-ASR-Speaker-
 ```
 
 ```
-find . $PWD/SLT-Task2-Post-ASR-Speaker-Tagging/err_source_text/dev -name *.seglst.json > err_dev.src.list
-find . $PWD/SLT-Task2-Post-ASR-Speaker-Tagging/ref_annotated_text/dev -name *.seglst.json > err_dev.ref.list
+find $PWD/SLT-Task2-Post-ASR-Speaker-Tagging/err_source_text/dev -maxdepth 1 -type f -name "*.seglst.json" > err_dev.src.list
+find $PWD/SLT-Task2-Post-ASR-Speaker-Tagging/ref_annotated_text/dev -maxdepth 1 -type f -name "*.seglst.json" > err_dev.ref.list
 ```
 
 ### Launch the baseline script
