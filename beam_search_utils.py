@@ -62,13 +62,14 @@ class SpeakerTaggingBeamSearchDecoder:
                 Each session is indexed by a unique ID.
         """
         for uniq_id, session_dict in tqdm(trans_info_dict.items(), total=len(trans_info_dict), disable=True):
+            # print(f"{__INFO_TAG__} Processing session {uniq_id}")
             word_dict_seq_list = session_dict['words']
             output_beams = self.realign_words_with_lm(word_dict_seq_list=word_dict_seq_list, speaker_count=session_dict['speaker_count'], port_num=port_num)
             word_dict_seq_list = output_beams[0][2]
             trans_info_dict[uniq_id]['words'] = word_dict_seq_list
         return trans_info_dict
 
-    def merge_div_inputs(self, div_trans_info_dict, org_trans_info_dict, win_len=250, word_window=16):
+    def merge_div_inputs(self, div_trans_info_dict, org_trans_info_dict, win_len=250, word_window=16, limit_max_spks=8):
         """
         Merge the outputs of parallel processing.
         """
@@ -80,18 +81,26 @@ class SpeakerTaggingBeamSearchDecoder:
             if uniq_id not in sub_div_dict:
                 sub_div_dict[uniq_id] = [None] * total_count
             sub_div_dict[uniq_id][sub_idx] = div_trans_info_dict[seq_id]['words']
-                
+
+        processed_trans_info_dict = {}    
         for uniq_id in uniq_id_list:
-            org_trans_info_dict[uniq_id]['words'] = []
-            for k, div_words in enumerate(sub_div_dict[uniq_id]):
-                if k == 0:
-                    div_words = div_words[:win_len]
-                else:
-                    div_words = div_words[word_window:]
-                org_trans_info_dict[uniq_id]['words'].extend(div_words)
-        return org_trans_info_dict
+            processed_trans_info_dict[uniq_id] = {'words': []}
+
+            if uniq_id in sub_div_dict:
+                for k, div_words in enumerate(sub_div_dict[uniq_id]):
+                    if k == 0:
+                        div_words = div_words[:win_len]
+                    else:
+                        div_words = div_words[word_window:]
+                    processed_trans_info_dict[uniq_id]['words'].extend(div_words)
+
+                org_trans_info_dict[uniq_id]['words'] = processed_trans_info_dict[uniq_id]['words']
+            else:
+                processed_trans_info_dict[uniq_id]['words'] = org_trans_info_dict[uniq_id]['words']
+        return processed_trans_info_dict
+        # return org_trans_info_dict
     
-    def divide_chunks(self, trans_info_dict, win_len, word_window, port):
+    def divide_chunks(self, trans_info_dict, win_len, word_window, limit_max_spks, port):
         """
         Divide word sequence into chunks of length `win_len` for parallel processing.    
 
@@ -103,14 +112,21 @@ class SpeakerTaggingBeamSearchDecoder:
         if len(port) > 1:
             num_workers = len(port) 
         else:
-            num_workers = 1
+            num_workers = 25
         div_trans_info_dict = {}
         for uniq_id in trans_info_dict.keys():
+            
             uniq_trans = trans_info_dict[uniq_id]
-            del uniq_trans['status']
-            del uniq_trans['transcription']
-            del uniq_trans['sentences']
+            if 'status' in uniq_trans:
+                del uniq_trans['status']
+            if 'transcription' in uniq_trans:
+                del uniq_trans['transcription']
+            if 'sentences' in uniq_trans:
+                del uniq_trans['sentences']
             word_seq = uniq_trans['words']
+            num_spks = len(set([x['speaker'] for x in word_seq]))
+            if num_spks > limit_max_spks:
+                continue
 
             div_word_seq = [] 
             if win_len is None:
@@ -135,6 +151,7 @@ def run_mp_beam_search_decoding(
     div_mp, 
     win_len, 
     word_window, 
+    limit_max_spks, 
     port=None, 
     use_ngram=False
     ):
@@ -142,15 +159,15 @@ def run_mp_beam_search_decoding(
         port = [int(p) for p in port]
     if use_ngram:
         port = [None]
-        num_workers = 36
+        num_workers = 24
     else:
         num_workers = len(port)
-    
     uniq_id_list = sorted(list(div_trans_info_dict.keys() ))
     tp = concurrent.futures.ProcessPoolExecutor(max_workers=num_workers)
     futures = []
 
     count = 0
+    print(f"{__INFO_TAG__} Number of unique chunks to process: {len(uniq_id_list)}")
     for uniq_id in uniq_id_list:
         print(f"{__INFO_TAG__} Running beam search decoding for {uniq_id}...")
         if port is not None:
@@ -174,7 +191,8 @@ def run_mp_beam_search_decoding(
         output_trans_info_dict = speaker_beam_search_decoder.merge_div_inputs(div_trans_info_dict=output_trans_info_dict, 
                                                                               org_trans_info_dict=org_trans_info_dict, 
                                                                               win_len=win_len, 
-                                                                              word_window=word_window)
+                                                                              word_window=word_window, 
+                                                                              limit_max_spks=limit_max_spks)
     return output_trans_info_dict
 
 def count_num_of_spks(json_trans_list):
@@ -320,5 +338,9 @@ def write_seglst_jsons(
 
     print(f"{__INFO_TAG__} Writing {diar_out_path}/{session_id}.seglst.json")
     total_output_filename = total_output_filename.replace("src", ext_str).replace("ref", ext_str)
-    with open(f'{diar_out_path}/{total_output_filename}.seglst.json', 'w') as file:
+    write_fn = f"{diar_out_path}/{total_output_filename}.seglst.json"
+    if os.path.exists(write_fn):
+        print(f"{__INFO_TAG__} {write_fn} already exists. Deleting it.")
+        os.remove(write_fn)
+    with open(write_fn, 'w') as file:
         json.dump(total_infer_list, file, indent=4)  # indent=4 for pretty printing

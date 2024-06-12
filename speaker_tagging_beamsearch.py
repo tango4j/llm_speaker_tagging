@@ -6,13 +6,15 @@ from beam_search_utils import (
     SpeakerTaggingBeamSearchDecoder,
     load_input_jsons,
     load_reference_jsons,
-    write_seglst_jsons,
     run_mp_beam_search_decoding,
     convert_nemo_json_to_seglst,
 )
 from hydra.core.config_store import ConfigStore
-from hyper_optim import optuna_hyper_optim
-
+from hyper_optim import (
+    optuna_hyper_optim, 
+    evaluate,
+    evaluate_diff,
+)
 
 
 @dataclass
@@ -28,6 +30,7 @@ class RealigningLanguageModelParameters:
     parallel_chunk_word_len: int = 250
     use_ngram: bool = True
     peak_prob: float = 0.95
+    limit_max_spks: int = 2
     alpha: float = 0.5
     beta: float = 0.05
     beam_width: int = 16
@@ -57,17 +60,11 @@ def main(cfg: RealigningLanguageModelParameters) -> None:
     loaded_kenlm_model = kenlm.Model(cfg.arpa_language_model)
     speaker_beam_search_decoder = SpeakerTaggingBeamSearchDecoder(loaded_kenlm_model=loaded_kenlm_model, cfg=cfg)
     
-    div_trans_info_dict = speaker_beam_search_decoder.divide_chunks(trans_info_dict=trans_info_dict, 
-                                                                    win_len=cfg.parallel_chunk_word_len, 
-                                                                    word_window=cfg.word_window,
-                                                                    port=cfg.port,)
-
     if cfg.hyper_params_optim:
         print(f"{__INFO_TAG__} Optimizing hyper-parameters...")
         cfg = optuna_hyper_optim(cfg=cfg,
                                 speaker_beam_search_decoder=speaker_beam_search_decoder,
                                 loaded_kenlm_model=loaded_kenlm_model,
-                                div_trans_info_dict=div_trans_info_dict, 
                                 org_trans_info_dict=trans_info_dict,
                                 source_info_dict=source_info_dict,
                                 reference_info_dict=reference_info_dict, 
@@ -75,22 +72,40 @@ def main(cfg: RealigningLanguageModelParameters) -> None:
         
         __INFO_TAG__ = f"{__INFO_TAG__} Optimized hyper-parameters - "
     else:
-        trans_info_dict = run_mp_beam_search_decoding(speaker_beam_search_decoder, 
-                                                        loaded_kenlm_model=loaded_kenlm_model,
-                                                        div_trans_info_dict=div_trans_info_dict, 
-                                                        org_trans_info_dict=trans_info_dict, 
-                                                        div_mp=True,
-                                                        win_len=cfg.parallel_chunk_word_len,
-                                                        word_window=cfg.word_window,
-                                                        port=cfg.port,
-                                                        use_ngram=cfg.use_ngram,
-                                                        )
-        hypothesis_sessions_dict = convert_nemo_json_to_seglst(trans_info_dict) 
+        div_trans_info_dict = speaker_beam_search_decoder.divide_chunks(trans_info_dict=trans_info_dict, 
+                                                                        win_len=cfg.parallel_chunk_word_len, 
+                                                                        word_window=cfg.word_window,
+                                                                        limit_max_spks=cfg.limit_max_spks,
+                                                                        port=cfg.port,)
+        result_trans_info_dict = run_mp_beam_search_decoding(speaker_beam_search_decoder, 
+                                                loaded_kenlm_model=loaded_kenlm_model,
+                                                div_trans_info_dict=div_trans_info_dict, 
+                                                org_trans_info_dict=trans_info_dict, 
+                                                div_mp=True,
+                                                win_len=cfg.parallel_chunk_word_len,
+                                                word_window=cfg.word_window,
+                                                limit_max_spks=cfg.limit_max_spks,
+                                                port=cfg.port,
+                                                use_ngram=cfg.use_ngram,
+                                                )
+        hypothesis_sessions_dict = convert_nemo_json_to_seglst(result_trans_info_dict) 
+
+        evaluate(cfg, 
+                 cfg.out_dir, 
+                 cfg.asrdiar_file_name, 
+                 source_info_dict, 
+                 hypothesis_sessions_dict, 
+                 reference_info_dict
+                 )
         
-        write_seglst_jsons(hypothesis_sessions_dict, input_error_src_list_path=cfg.input_error_src_list_path, diar_out_path=cfg.out_dir, ext_str='hyp')
-        write_seglst_jsons(reference_info_dict, input_error_src_list_path=cfg.groundtruth_ref_list_path, diar_out_path=cfg.out_dir, ext_str='ref')
-        write_seglst_jsons(source_info_dict, input_error_src_list_path=cfg.groundtruth_ref_list_path, diar_out_path=cfg.out_dir, ext_str='src')
-    
+        evaluate_diff(cfg, 
+                 cfg.out_dir, 
+                 cfg.asrdiar_file_name, 
+                 source_info_dict, 
+                 hypothesis_sessions_dict, 
+                 reference_info_dict
+                 )
+
         print(f"{__INFO_TAG__} Parameters used: \
                 \n ALPHA: {cfg.alpha} \
                 \n BETA: {cfg.beta} \
