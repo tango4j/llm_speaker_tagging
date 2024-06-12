@@ -237,9 +237,18 @@ python $BASEPATH/speaker_tagging_beamsearch.py \
     parallel_chunk_word_len=175 \
     out_dir=$WORKSPACE \
     peak_prob=0.96 || exit 1
-
-
 ```
+
+You have successfully run the baseline system if you get the following text printed on your screen.
+The baseline system results in a cpWER of `0.2454` while the original erroneous source has a cpWER of `0.2465`.
+
+
+``
+[YYYY-MM-DD  HH:MM:SS,782][root][INFO] - -> HYPOTHESIS cpWER=0.2454
+[YYYY-MM-DD  HH:MM:SS,783][root][INFO] - -> SOURCE cpWER=0.2465
+[YYYY-MM-DD  HH:MM:SS,783][root][INFO] - -> Average cpWER DIFF=-0.0147
+[YYYY-MM-DD  HH:MM:SS,783][root][INFO] - -> HYPOTHESIS Improved cpWER=-0.0011
+``
 
 ### Evaluate 
 
@@ -265,17 +274,17 @@ cat ./SLT-Task2-Post-ASR-Speaker-Tagging/err_dev.hyp.seglst_cpwer.json`
 The result file contains a json-dictionary. `"error_rate"` is the `cpwer` value we want to minimize.
 ```json
 {
-  "error_rate": 0.18784847090516965,
-  "errors": 73077,
-  "length": 389021,
-  "insertions": 13739,
-  "deletions": 42173,
-  "substitutions": 17165,
+  "error_rate": 0.24536675570166427,
+  "errors": 5971,
+  "length": 24335,
+  "insertions": 842,
+  "deletions": 3454,
+  "substitutions": 1675,
   "reference_self_overlap": null,
   "hypothesis_self_overlap": null,
   "missed_speaker": 0,
-  "falarm_speaker": 6,
-  "scored_speaker": 330,
+  "falarm_speaker": 0,
+  "scored_speaker": 26,
   "assignment": null
 }
 ```
@@ -287,8 +296,8 @@ This is an example of GPT-based speaker tagging correction. The following text i
 
 ```markdown
 - Track-2 is a challenge track that aims to correct the speaker tagging of the ASR-generated transcripts tagged with a speaker diarization system.  
-- Since the traditional speaker diarization systems cannot take lexical cues into account, leading to errors that disrupt the context of human conversations.
-- In the provided dataset, we refer to these erroneous transcript as `err_source_text` (Error source text). Here is an example.
+- Traditional speaker diarization systems cannot take lexical cues into account, leading to errors that disrupt the context of human conversations.
+- In the provided dataset, we refer to these erroneous transcripts as `err_source_text` (Error source text). Here is an example.
 
 - Erroneous Original Transcript `err_source_text`:
 
