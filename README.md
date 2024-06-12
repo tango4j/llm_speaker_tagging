@@ -243,12 +243,12 @@ You have successfully run the baseline system if you get the following text prin
 The baseline system results in a cpWER of `0.2454` while the original erroneous source has a cpWER of `0.2465`.
 
 
-``
-[YYYY-MM-DD  HH:MM:SS,782][root][INFO] - -> HYPOTHESIS cpWER=0.2454
-[YYYY-MM-DD  HH:MM:SS,783][root][INFO] - -> SOURCE cpWER=0.2465
-[YYYY-MM-DD  HH:MM:SS,783][root][INFO] - -> Average cpWER DIFF=-0.0147
-[YYYY-MM-DD  HH:MM:SS,783][root][INFO] - -> HYPOTHESIS Improved cpWER=-0.0011
-``
+```bash
+[YYYY-MM-DD  HH:MM:SS,782][root][INFO] - -> HYPOTHESIS cpWER=0.2454 
+[YYYY-MM-DD  HH:MM:SS,783][root][INFO] - -> SOURCE cpWER=0.2465 
+[YYYY-MM-DD  HH:MM:SS,783][root][INFO] - -> Average cpWER DIFF=-0.0147 
+[YYYY-MM-DD  HH:MM:SS,783][root][INFO] - -> HYPOTHESIS Improved cpWER=-0.0011 
+```
 
 ### Evaluate 
 
