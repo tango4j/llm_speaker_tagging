@@ -224,16 +224,6 @@ GROUNDTRUTH_REF_LIST_PATH=$BASEPATH/$ASRDIAR_FILE_NAME.ref.list
 DIAR_OUT_DOWNLOAD=$WORKSPACE/$ASRDIAR_FILE_NAME
 mkdir -p $DIAR_OUT_DOWNLOAD
 
-
-# Get the base name of the test_manifest and remove extension
-UNIQ_MEMO=$(basename "${INPUT_ERROR_SRC_LIST_PATH}" .json | sed 's/\./_/g') 
-echo "UNIQ MEMO:" $UNIQ_MEMO
-
-rm $WORKSPACE/$ASRDIAR_FILE_NAME.src.seglst.json
-rm $WORKSPACE/$ASRDIAR_FILE_NAME.ref.seglst.json
-rm $WORKSPACE/$ASRDIAR_FILE_NAME.hyp.seglst.json
-
-
 python $BASEPATH/speaker_tagging_beamsearch.py \
     asrdiar_file_name=$ASRDIAR_FILE_NAME \
     hyper_params_optim=false \
