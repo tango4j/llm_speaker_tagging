@@ -3,6 +3,9 @@
 SLT 2024 Challenge: Track-2 Post-ASR-Speaker-Tagging 
 Baseline and Instructions for Track-2
 
+Checkout the leaderboard that automatically evaluates both dev set and eval set.  
+[Task-2 Speaker Tagging Leaderboard](https://huggingface.co/spaces/GenSEC-LLM/task2_speaker_tagging_leaderboard)
+
 # GenSEC Challenge Track-2 Introduction
 
 SLT 2024 Challenge GenSEC Track 2: Post-ASR-Speaker-Tagging 
