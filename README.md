@@ -87,7 +87,6 @@ The baseline system is based on the system proposed in [Enhancing Speaker Diariz
 
 The prposed CBS method brings the beam search technique used for ASR language model to speaker diarization.
 
-
 <img src="images/two_realms.png" width="720" alt="Two Realms"/>
 
 In CBS method, the following three probability values are needed: 
@@ -170,33 +169,39 @@ In the above folder, you will see the following folder structures.
 ```bash
 .
 ├── err_source_text
+│   ├── train
+│   │   ├── session_aa01bbcc.seglst.json
+│.
+│..
+│   │   ├── session_bb00bbcc.seglst.json
+│   │   └── session_dd01bbcc.seglst.json
 │   ├── dev
-│   │   ├── session_014b5cda.seglst.json
 │   │   ├── session_02d73d95.seglst.json
 │.
 │..
 │   │   ├── session_fcd0a550.seglst.json
 │   │   └── session_ff16b903.seglst.json
 │   └── eval
-│       ├── session_0259446c.seglst.json
 │       ├── session_0bea34fa.seglst.json
 │..
 │...
 │       ├── session_f84edf1f.seglst.json
 │       └── session_febfa7aa.seglst.json
 ├── ref_annotated_text
-│   └── dev
-│       ├── session_014b5cda.seglst.json
-│       ├── session_02d73d95.seglst.json
-│.
+│   ├── train
 │..
-│       ├── session_fcd0a550.seglst.json
+│   │   └── session_dd01bbcc.seglst.json
+│   ├── dev
+│       ├── session_0259446c.seglst.json
+│..
+│   └── eval
+│..
 │       └── session_ff16b903.seglst.json
 ```
 
 The file counts are as follows:
- - `err_source_text`: dev 142 files, eval 104 files
- - `ref_annotated_text`: dev 142 files
+ - `err_source_text`: train 222 dev 13 files, eval 11 files
+ - `ref_annotated_text`: train 222 dev 13 files, eval 11 files (only accessible through leaderboard evaluations)
 
 Run the following commands to construct the input list files `err_dev.src.list` and `err_dev.ref.list`.
 ```
